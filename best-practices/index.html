@@ -117,11 +117,22 @@
           <li><span class="tag">Templates</span>Use task templates for work that repeats and form templates to give requests structure.</li>
           <li><span class="tag">Briefs</span>Use brief templates for campaigns and tasks so every brief captures the same essentials.</li>
           <li><span class="tag">Dependencies</span>Link related tasks so due dates shift automatically when plans change.</li>
+          <li><span class="tag">Context</span>Store brand guidance, personas and KPIs once as reusable instructions or skills, so every agent and brief starts from the same source of truth.</li>
+          <li><span class="tag">Checkers</span>Give each review agent (brand, legal, compliance, accessibility) its own rulebook. Have it flag issues and suggest fixes in the task, and keep a person as the final approver.</li>
         </ul>
       </div>
     </div>
 
-    <h2>4. Putting them together: AI-assisted CMP workflow</h2>
+    <h2>4. Where to start</h2>
+    <p style="margin:0 0 8px;color:var(--muted)">You do not need every use case on day one. Prove one, then build on it.</p>
+    <table>
+      <tr><th>Phase</th><th>Focus</th><th>Examples</th></tr>
+      <tr><td><b>1. Quick wins</b></td><td>Light set-up, value in the first weeks</td><td>Auto-review incoming work requests; auto-create campaigns and tasks from an approved request; goal-led briefs; image resizing and variants</td></tr>
+      <tr><td><b>2. Foundations</b></td><td>Brand, naming and findability that scale</td><td>On-brand content from a shared brand source; naming-convention checks and notifications; asset tagging and taxonomy clean-up</td></tr>
+      <tr><td><b>3. Scale up</b></td><td>People and agents working as one team</td><td>Auto-assigning users to workflow steps; agents owning workflow steps; compliance, legal and brand checker agents</td></tr>
+    </table>
+
+    <h2>5. Putting them together: AI-assisted CMP workflow</h2>
     <ol>
       <li><b>Design the CMP workflow first.</b> Mark the steps that AI will handle as <b>external steps</b>, and name each external system clearly (the name is case-sensitive and drives routing).</li>
       <li><b>Build a Mark workflow agent with a webhook trigger</b> and an External Step Router agent that sends each external system name to the right branch.</li>
@@ -133,7 +144,7 @@
       <li><b>Keep a human review step</b> in CMP before anything is published.</li>
     </ol>
 
-    <h2>5. Troubleshooting: step does not advance</h2>
+    <h2>6. Troubleshooting: step does not advance</h2>
     <div class="note">
       Check that (1) <code>update_task_substep</code> is enabled on the agent, (2) the <code>task_id_or_url</code> variable flows through the workflow, (3) Mark is connected to the correct CMP instance, (4) the external system name matches exactly, and (5) the router has a condition for that system.
     </div>
