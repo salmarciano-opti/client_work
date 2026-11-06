@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Best Practices: Building in CMP and Mark</title>
+<style>
+  :root{--ink:#1b1f2a;--muted:#5b6475;--brand:#0037ff;--brand2:#6b3df5;--bg:#f5f7fb;--card:#fff;--line:#e3e7ef}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .page{max-width:1000px;margin:24px auto;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(20,30,60,.08)}
+  header{padding:28px 36px;color:#fff;background:linear-gradient(120deg,var(--brand),var(--brand2))}
+  header h1{margin:0 0 6px;font-size:26px;letter-spacing:-.3px}
+  header p{margin:0;opacity:.92;font-size:15px}
+  .body{padding:26px 36px 30px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.8px;color:var(--brand);margin:26px 0 10px}
+  h2:first-child{margin-top:0}
+  h3{font-size:14px;margin:14px 0 4px;color:#22307a}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#eef2ff;color:#22307a;font-weight:600}
+  .flow{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;margin:6px 0}
+  .step{flex:1 1 140px;background:#f1f4ff;border:1px solid #d7defc;border-radius:10px;padding:10px 12px}
+  .step b{display:block;color:#22307a;margin-bottom:2px}
+  .step span{color:var(--muted);font-size:12.5px}
+  .arrow{align-self:center;color:var(--brand);font-weight:700}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  ul,ol{margin:6px 0 0;padding-left:20px}
+  li{margin:4px 0}
+  .note{background:#fff8e6;border:1px solid #f3dca0;border-radius:10px;padding:10px 14px;font-size:13px}
+  .summary{background:#f1f4ff;border:1px solid #d7defc;border-left:4px solid var(--brand);border-radius:10px;padding:12px 16px;font-size:13.5px}
+  .tag{display:inline-block;background:#e8ecff;color:#22307a;border-radius:20px;padding:1px 9px;font-size:12px;margin-right:4px}
+  code{background:#eef2ff;border-radius:4px;padding:0 4px;font-size:12.5px}
+  footer{padding:14px 36px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  a{color:var(--brand)}
+  @media(max-width:720px){.cols{grid-template-columns:1fr}.body,header{padding-left:20px;padding-right:20px}}
+  @media print{body{background:#fff}.page{box-shadow:none;margin:0;max-width:none}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Best Practices: Building in CMP and Mark</h1>
+    <p>How to design agents, workflows and content processes that stay reliable as you scale</p>
+  </header>
+
+  <div class="body">
+
+    <h2>1. How CMP and Mark work together</h2>
+    <div class="summary">
+      <b>CMP</b> manages the work: tasks, briefs, templates, approvals and publishing.
+      <b>Mark</b> does the work: specialized agents handle focused steps, and workflow agents orchestrate them.
+      Connect the two with a CMP <b>external step</b> that triggers a Mark workflow agent by webhook, then lets Mark mark the step complete.
+    </div>
+    <div class="flow">
+      <div class="step"><b>CMP task</b><span>Reaches an external step in its workflow</span></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><b>Webhook</b><span>CMP sends <code>external_sub_step_started</code></span></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><b>Mark workflow agent</b><span>Router sends it to the right branch</span></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><b>Specialized agents</b><span>Do the focused work</span></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><b>Back to CMP</b><span>Step marked complete, task moves on</span></div>
+    </div>
+
+    <h2>2. Best practices in Mark</h2>
+    <div class="cols">
+      <div>
+        <h3>Specialized agents</h3>
+        <ul>
+          <li><span class="tag">Scope</span>If you can describe the job with one verb (summarize, scan, translate), it is scoped well. Split multi-step agents into smaller ones.</li>
+          <li><span class="tag">Prompt</span>Use clear, direct language and a top-down sequence (collect inputs, then summarize, then produce output). Avoid pointing backward.</li>
+          <li><span class="tag">Structure</span>Use headers, bold and lists to give the prompt a clear hierarchy.</li>
+          <li><span class="tag">Variables</span>Define inputs in the Variables section and reference them as <code>[[VARIABLE_NAME]]</code>.</li>
+          <li><span class="tag">Tools</span>Agents only use tools you add. Name each tool in backticks and say when and how to use it.</li>
+          <li><span class="tag">Reasoning</span>Set the Inference Level to match the task: higher levels reason more deeply but take longer.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Workflow agents</h3>
+        <ul>
+          <li><span class="tag">Modular</span>Keep each agent to one task or decision point.</li>
+          <li><span class="tag">Logic</span>Put branching and repetition in workflow steps (conditions, loops), not inside one agent.</li>
+          <li><span class="tag">Conditions</span>Use precise criteria. Add an Else path for anything unexpected.</li>
+          <li><span class="tag">Loops</span>Run iterations in parallel for independent items. Turn parallel off when iterations share a resource or order matters. Up to three nested loops.</li>
+          <li><span class="tag">Code steps</span>Use them to reshape data between steps. They have no LLM or network access.</li>
+          <li><span class="tag">Triggers</span>Choose the trigger that fits the context (chat, webhook, schedule, email).</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top:18px">Design, test and monitor</h3>
+    <table>
+      <tr><th>Stage</th><th>What to do</th></tr>
+      <tr><td><b>Design</b></td><td>Ask Mark to draft or edit the agent in chat. It flags ambiguous wording, validates configuration, suggests missing tools and generates test samples before you go live.</td></tr>
+      <tr><td><b>Test</b></td><td>Use <b>Test run</b>. Run the agent at least five times with different inputs and check the results are consistent. Workflow agents with a chat trigger can be tested before deployment; webhook, schedule and email triggers cannot.</td></tr>
+      <tr><td><b>Launch</b></td><td>Add a clear description and note any input requirements or limits so others know how to use it.</td></tr>
+      <tr><td><b>Monitor</b></td><td>Review execution logs. The <b>Quality</b> tab scores each run against your criteria and flags runs that deviate from normal behavior.</td></tr>
+      <tr><td><b>Iterate</b></td><td>Refine from feedback. Workflow agents keep version history, so you can compare runs and restore an earlier version.</td></tr>
+    </table>
+
+    <h2>3. Best practices in CMP</h2>
+    <div class="cols">
+      <div>
+        <h3>Workflows and governance</h3>
+        <ul>
+          <li><span class="tag">Hybrid</span>Combine flexible steps with locked governance steps (compliance, legal). Use Step Lock, Assignee Lock and Asset Lock where control matters.</li>
+          <li><span class="tag">Publishing</span>Only tick <b>Publish/Share</b> on the final workflow step.</li>
+          <li><span class="tag">Reuse</span>Check for an existing workflow before creating a new one, so tasks follow established processes.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Tasks, briefs and templates</h3>
+        <ul>
+          <li><span class="tag">Templates</span>Use task templates for work that repeats and form templates to give requests structure.</li>
+          <li><span class="tag">Briefs</span>Use brief templates for campaigns and tasks so every brief captures the same essentials.</li>
+          <li><span class="tag">Dependencies</span>Link related tasks so due dates shift automatically when plans change.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>4. Putting them together: AI-assisted CMP workflow</h2>
+    <ol>
+      <li><b>Design the CMP workflow first.</b> Mark the steps that AI will handle as <b>external steps</b>, and name each external system clearly (the name is case-sensitive and drives routing).</li>
+      <li><b>Build a Mark workflow agent with a webhook trigger</b> and an External Step Router agent that sends each external system name to the right branch.</li>
+      <li><b>Build one specialized agent per job</b> (for example brief enhancement, compliance check, translation), each with defined inputs and tools.</li>
+      <li><b>Finish each branch by calling back to CMP</b> with the <code>update_task_substep</code> tool, so the step completes and the task advances.</li>
+      <li><b>Create the CMP webhook</b> for <code>external_sub_step_started</code>. The secret in CMP must exactly match the auth key in Mark.</li>
+      <li><b>Test end to end</b> with a real task, then check Mark's workflow logs and confirm the step completed in CMP.</li>
+      <li><b>Add safeguards:</b> an Else or UNKNOWN branch, failure handling, and a notification with <code>send_email</code>.</li>
+      <li><b>Keep a human review step</b> in CMP before anything is published.</li>
+    </ol>
+
+    <h2>5. Troubleshooting: step does not advance</h2>
+    <div class="note">
+      Check that (1) <code>update_task_substep</code> is enabled on the agent, (2) the <code>task_id_or_url</code> variable flows through the workflow, (3) Mark is connected to the correct CMP instance, (4) the external system name matches exactly, and (5) the router has a condition for that system.
+    </div>
+
+  </div>
+
+  <footer>
+    Reference: <a href="https://docs.optimizely.com/agent-platform/docs/specialized-agents-fundamentals-and-best-practices">Specialized agents best practices</a> &middot;
+    <a href="https://docs.optimizely.com/agent-platform/docs/workflow-agents-overview">Workflow agents overview</a> &middot;
+    <a href="https://docs.optimizely.com/agent-platform/docs/how-to-trigger-workflow-agents-with-content-marketing-platform-webhooks">CMP webhook trigger</a> &middot;
+    <a href="https://docs.optimizely.com/content-marketing-platform/docs/hybrid-workflows">Hybrid workflows</a> &middot;
+    <a href="https://docs.optimizely.com/content-marketing-platform/docs/tasks-and-workflows">Tasks and workflows</a>
+  </footer>
+</div>
+</body>
+</html>
